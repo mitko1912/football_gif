@@ -1,0 +1,160 @@
+!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Prolog футболисти и GIF визуализация</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 700px;
+      margin: 30px auto;
+      background: #f0f8ff;
+      color: #222;
+      padding: 20px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      text-align: center;
+    }
+    textarea {
+      width: 90%;
+      max-width: 600px;
+      height: 120px;
+      font-family: monospace;
+      font-size: 16px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: 2px solid #007acc;
+      padding: 8px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 25px;
+      font-size: 18px;
+      background-color: #007acc;
+      border: none;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #005f99;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #004a99;
+    }
+    .player-container {
+      margin-top: 30px;
+      min-height: 160px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #d0e8ff;
+      border-radius: 12px;
+      box-shadow: 0 0 10px #a0c4ff;
+    }
+    .player-gif {
+      max-width: 180px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px #005f99;
+    }
+  </style>
+</head>
+<body>
+  <h1>Prolog футболисти + GIF визуализация</h1>
+
+  <textarea id="prolog-input">
+% Примерни заявки:
+is_forward(X).
+plays_for(X, argentina).
+is_legend(X).
+  </textarea><br />
+  <button onclick="runProlog()">Изпълни</button>
+
+  <div id="result"></div>
+  <div class="player-container" id="player-animation"></div>
+
+  <script src="https://unpkg.com/tau-prolog"></script>
+  <script>
+    const session = pl.create();
+
+    const knowledge = `
+      player(messi).
+      player(ronaldo).
+      player(mbappe).
+      player(neymar).
+      player(zidane).
+      player(maradona).
+
+      forward(messi).
+      forward(ronaldo).
+      forward(mbappe).
+      forward(neymar).
+
+      midfielder(zidane).
+      legend(maradona).
+      legend(zidane).
+
+      plays_for(messi, argentina).
+      plays_for(maradona, argentina).
+      plays_for(ronaldo, portugal).
+      plays_for(mbappe, france).
+      plays_for(neymar, brazil).
+      plays_for(zidane, france).
+
+      is_forward(X) :- forward(X).
+      is_midfielder(X) :- midfielder(X).
+      is_legend(X) :- legend(X).
+    `;
+
+    session.consult(knowledge);
+
+    const playerAnimations = {
+      messi: '<img src="https://media.giphy.com/media/kH4dE63Wni2SIgW5Ts/giphy.gif" class="player-gif" alt="Messi GIF" />',
+      ronaldo: '<img src="https://media.giphy.com/media/WoWm8YzFQJg5i/giphy.gif" class="player-gif" alt="Ronaldo GIF" />',
+      mbappe: '<img src="https://media.giphy.com/media/mQ5mKj4c4pIjLh7Eo4/giphy.gif" class="player-gif" alt="Mbappe GIF" />',
+      neymar: '<img src="https://media.giphy.com/media/l2JJy3uO7J2XDfXna/giphy.gif" class="player-gif" alt="Neymar GIF" />',
+      maradona: '<img src="https://media.giphy.com/media/mn0UBXbFZbXzA/giphy.gif" class="player-gif" alt="Maradona GIF" />',
+      zidane: '<img src="https://media.giphy.com/media/RfOk2Oa1a2HxS/giphy.gif" class="player-gif" alt="Zidane GIF" />'
+    };
+
+    function runProlog() {
+      const input = document.getElementById("prolog-input").value;
+      const resultDiv = document.getElementById("result");
+      const animDiv = document.getElementById("player-animation");
+
+      resultDiv.innerHTML = "";
+      animDiv.innerHTML = "";
+
+      session.query(input);
+      session.answers(answer => {
+        if (answer === false) {
+          resultDiv.innerHTML += `<p>Няма повече резултати.</p>`;
+          return;
+        }
+        const str = pl.format_answer(answer);
+        if (str === "false.") {
+          resultDiv.innerHTML = "<p>Няма резултати за тази заявка.</p>";
+          return;
+        }
+        resultDiv.innerHTML += `<p>${str}</p>`;
+
+        const match = str.match(/X = (\w+)/);
+        if (match) {
+          const player = match[1];
+          if (playerAnimations[player]) {
+            animDiv.innerHTML = playerAnimations[player];
+          } else {
+            animDiv.innerHTML = "<p>Няма GIF за този футболист.</p>";
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
